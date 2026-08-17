@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..700;1,14..32,300..700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
 @import 'tailwindcss';
@@ -6,10 +7,65 @@
   box-sizing: border-box;
 }
 
+html {
+  zoom: 1.1; /* Make things a bit bigger globally */
+}
+
+/* Theme tokens as real CSS custom properties — switching [data-theme] updates
+   every element instantly via the CSS cascade, independent of React render
+   cycles (a JS-object-mutation approach here silently misses components
+   React's compiler decides not to re-render). */
+:root,
+[data-theme='dark'] {
+  --c-bg: #09090b;
+  --c-bg2: #0d0d10;
+  --c-surface: #111113;
+  --c-surface2: #18181b;
+  --c-border: #1f1f23;
+  --c-border2: #27272a;
+  --c-indigo: #6366f1;
+  --c-indigo-dim: #4f46e5;
+  --c-indigo-glow: rgba(99, 102, 241, 0.12);
+  --c-indigo-ring: rgba(99, 102, 241, 0.08);
+  --c-indigo-border: rgba(99, 102, 241, 0.35);
+  --c-text: #f4f4f5;
+  --c-text2: #e4e4e7;
+  --c-muted: #a1a1aa;
+  --c-dim: #71717a;
+  --c-faint: #52525b;
+  --c-vfaint: #3f3f46;
+  --c-green: #22c55e;
+  --c-amber: #f59e0b;
+  --c-red: #ef4444;
+}
+
+[data-theme='light'] {
+  --c-bg: #ffffff;
+  --c-bg2: #f8f8fa;
+  --c-surface: #ffffff;
+  --c-surface2: #f1f1f4;
+  --c-border: #e4e4e7;
+  --c-border2: #d4d4d8;
+  --c-indigo: #6366f1;
+  --c-indigo-dim: #4f46e5;
+  --c-indigo-glow: rgba(99, 102, 241, 0.10);
+  --c-indigo-ring: rgba(99, 102, 241, 0.10);
+  --c-indigo-border: rgba(99, 102, 241, 0.35);
+  --c-text: #18181b;
+  --c-text2: #27272a;
+  --c-muted: #52525b;
+  --c-dim: #71717a;
+  --c-faint: #71717a;
+  --c-vfaint: #a1a1aa;
+  --c-green: #16a34a;
+  --c-amber: #d97706;
+  --c-red: #dc2626;
+}
+
 body {
-  background: #09090b;
-  color: #f4f4f5;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   margin: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
