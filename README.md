@@ -1,84 +1,52 @@
-# Vaultiq — Enterprise AI Knowledge Engine
+# Vaultiq
 
-Vaultiq is an intelligent enterprise search and knowledge platform. Upload internal documents, and a multi-agent AI backend parses, summarizes, tags, and embeds them so you can search and chat with your organization's knowledge — grounded strictly in your own documents.
+**Vaultiq** is an enterprise AI knowledge engine — upload internal documents and search, filter, and chat with them through a multi-agent AI backend that stays strictly grounded in your own content.
 
-|                                            |                                            |
-| ------------------------------------------ | ------------------------------------------ |
-| ![Search](Images/search.webp)               | ![Results](Images/results.webp)             |
-| ![Chat](Images/chat.webp)                   | ![Summary](Images/summary.webp)             |
+<p align="center">
+  <img src="Example-Documents/search.png" width="49%" alt="Search home" />
+  <img src="Example-Documents/results-1.png" width="49%" alt="Search results with filters" />
+</p>
+<p align="center">
+  <img src="Example-Documents/chat.png" width="49%" alt="Document chat" />
+  <img src="Example-Documents/summary-preview.png" width="49%" alt="Document summary panel" />
+</p>
 
-## How it works
+## What it does
 
-**Frontend** — React 19 + Vite + Tailwind CSS v4, with Firebase Authentication (email/password and Google sign-in).
+- **Upload** PDF, DOCX, XLSX, PPTX, PNG, or JPG files (single or batch), tagging each with where it came from (direct upload, GitHub, Jira, Confluence, Google Drive, SharePoint, Notion, Slack).
+- **Understand** every document automatically: a 3-bullet executive summary, specific search-relevant tags scaled to document length, and a single department classification (Engineering, Security, Finance, HR, Legal, IT, ...) used for filtering.
+- **Search** across your whole corpus with real relevance ranking, or **chat** with a single document — answers come only from retrieved chunks of your own content, scoped to that document when chatting from its panel.
+- **Manage your profile**: display name, job role, seniority, password, dark/light theme — all real, persisted settings.
 
-**Backend** — FastAPI + PostgreSQL (via Supabase, with the `pgvector` extension). Handles uploads, parsing, and chat over a WebSocket for live progress.
+See [`SETUP.md`](SETUP.md) for how to run this locally and deploy it.
 
-**Document pipeline** — every upload is parsed (`pdfplumber` / `python-docx` / `openpyxl` / `python-pptx`, with a Groq vision-model OCR fallback for scanned pages and images), then:
-- summarized into a 3-bullet executive summary,
-- tagged with specific, page-count-scaled keywords for search relevance,
-- classified into a single department (Engineering, Security, Finance, HR, Legal, IT, ...) used for filtering,
-- chunked and embedded locally (`sentence-transformers`, no external embedding API) into `pgvector` for retrieval.
+## Tech stack
 
-**Chat / RAG** — a LangGraph multi-agent router (`openai/gpt-oss-20b` for classification, `openai/gpt-oss-120b` for generation, via Groq) classifies each query as RAG / Research / Comparison / Extraction / Location and answers strictly from retrieved document chunks — scoped to the document you're viewing when chatting from a document panel, or across your whole corpus from global search.
+| Layer | Stack |
+| --- | --- |
+| Frontend | React 19, Vite, Tailwind CSS v4, Firebase Auth |
+| Backend | FastAPI, PostgreSQL + `pgvector` (Supabase), WebSockets for live upload progress |
+| Document parsing | `pdfplumber`, `python-docx`, `openpyxl`, `python-pptx`, Groq vision-model OCR fallback |
+| Embeddings | `sentence-transformers` (local, no external API) |
+| Chat / RAG | LangGraph multi-agent router over Groq (`openai/gpt-oss-20b` / `120b`) |
+| Observability | Langfuse |
 
-**Observability** — instrumented with Langfuse for LLM call traces, latency, and token cost.
+Backend source lives in the sibling repo, `Vaultiq-Backend`.
 
----
+## Repo layout
 
-## Project structure
-
-- `src/App.tsx` — the app: search, results, filters, document drawer, document chat, agents/observability dashboards, profile & settings
-- `src/AuthPage.tsx` — sign-in / sign-up screen
-- `src/lib/AuthContext.tsx` — Firebase auth state, display name, password change
-- `src/lib/firebase.ts` — Firebase client config (not a secret — see comment in file)
-- `src/data/documents.ts` — fallback mock documents used only if the backend is unreachable
-
-Backend lives in a sibling repo, `Vaultiq-Backend`.
-
----
-
-## Local setup
-
-### Frontend
-```bash
-npm install
-npm run dev
 ```
-Runs on `http://localhost:8443` by default (see `vite.config.ts` / `$PORT`).
-
-### Backend
-See the `Vaultiq-Backend` repo's own setup — briefly:
-```bash
-python -m venv venv
-.\venv\Scripts\activate
-pip install -r requirements.txt
-python init_db.py       # requires DATABASE_URL with pgvector enabled
-uvicorn main:app --reload
+src/
+  App.tsx            the app — search, results, filters, document drawer & chat,
+                      agents/observability dashboards, profile & settings
+  AuthPage.tsx        sign-in / sign-up
+  lib/AuthContext.tsx Firebase auth state, display name, password change
+  lib/firebase.ts     Firebase client config (safe to be public — see file comment)
+  data/documents.ts   fallback mock documents, used only if the backend is unreachable
+Example-Documents/    sample files across departments for testing uploads, plus README screenshots
 ```
-
-### Environment variables (frontend)
-| Variable | Required | Purpose |
-| --- | --- | --- |
-| `VITE_API_URL` | In production | Base URL of the deployed backend (e.g. `https://vaultiq-backend.up.railway.app`). Defaults to `http://localhost:8000` for local dev. |
-
-Firebase config is intentionally hardcoded in `src/lib/firebase.ts` — Firebase web `apiKey`/`appId` are public client identifiers, not secrets; access is enforced by Firebase's own auth rules, not by hiding this config.
-
----
-
-## Deploying
-
-### Frontend → Vercel
-1. Import this repo into Vercel (framework preset: **Vite**).
-2. Build command: `npm run build` · Output directory: `dist` (Vercel usually detects both automatically).
-3. Add an environment variable: `VITE_API_URL` = your deployed backend URL (no trailing slash).
-4. Deploy. Once you have the Vercel domain, add it to **Firebase Console → Authentication → Settings → Authorized domains** — sign-in will fail on the new domain otherwise.
-
-### Backend → Railway
-Deploy the `Vaultiq-Backend` repo separately; point this frontend's `VITE_API_URL` at whatever domain Railway assigns it. Backend env vars (`DATABASE_URL`, `GROQ_API_KEY*`, `LANGFUSE_*`) live in that repo's own `.env` / Railway service variables — never commit them.
-
----
 
 ## Known limitations
 
-- Document `source` (GitHub, Jira, Google Drive, Confluence, ...) is user-selected at upload time as metadata, not a live integration — there's no actual sync with those services yet.
-- Vision OCR depends on whichever vision-capable model is available on the configured Groq account; if none is available it degrades to a placeholder note rather than failing the upload.
+- Document `source` (GitHub, Jira, Google Drive, ...) is metadata you choose at upload time, not a live integration — nothing actually syncs with those services yet.
+- Vision OCR quality depends on whichever vision-capable model is available on the configured Groq account; if none is available, it degrades to a placeholder note instead of failing the upload.
