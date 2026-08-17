@@ -1,0 +1,10 @@
+{
+  "description": "Enterprise AI-powered document search platform offering multi-agent workflows and observability with a sleek, modern dark-themed interface for efficient knowledge discovery.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
