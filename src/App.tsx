@@ -239,17 +239,18 @@ function StatusDot({ status }: { status: Status }) {
   )
 }
 
-function Tag({ label }: { label: string }) {
+function Tag({ label, compact = false }: { label: string; compact?: boolean }) {
   return (
     <span
       style={{
-        fontSize: 11,
+        fontSize: compact ? 9 : 11,
         fontWeight: 500,
-        padding: '2px 8px',
+        padding: compact ? '1px 6px' : '2px 8px',
         borderRadius: 4,
         border: `1px solid ${C.border2}`,
         color: C.dim,
         letterSpacing: '0.01em',
+        whiteSpace: 'nowrap' as const,
       }}
     >
       {label}
@@ -1802,10 +1803,15 @@ function DocDrawer({ doc, onClose }: { doc: VaultiqDocument; onClose: () => void
             {
               label: 'Tags',
               content: (
-                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' as const }}>
-                  {doc.tags.map(t => (
-                    <Tag key={t} label={t} />
+                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' as const, maxWidth: 320 }}>
+                  {doc.tags.slice(0, 6).map(t => (
+                    <Tag key={t} label={t} compact />
                   ))}
+                  {doc.tags.length > 6 && (
+                    <span style={{ fontSize: 10, color: C.faint, alignSelf: 'center' }}>
+                      +{doc.tags.length - 6} more
+                    </span>
+                  )}
                 </div>
               ),
             },
